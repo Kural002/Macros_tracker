@@ -137,7 +137,7 @@ class _NutritionTrendsScreenState extends State<NutritionTrendsScreen> {
             const NutritionMonthlyChart(
               title: "Calories",
               maxY: 876.0,
-              spots: [FlSpot(0, 0), FlSpot(2, 700), FlSpot(4, 0), FlSpot(6, 0)],
+              spots: [FlSpot(0, 0), FlSpot(2, 550), FlSpot(6, 0), FlSpot(6, 0)],
             ),
           const SizedBox(height: 40),
           if (selectedNutrient == "All Nutrients" ||
@@ -145,7 +145,7 @@ class _NutritionTrendsScreenState extends State<NutritionTrendsScreen> {
             const NutritionMonthlyChart(
               title: "Protein",
               maxY: 22.0,
-              spots: [FlSpot(0, 0), FlSpot(2, 18), FlSpot(4, 0), FlSpot(6, 0)],
+              spots: [FlSpot(0, 0), FlSpot(2, 8), FlSpot(6, 0), FlSpot(6, 0)],
             ),
         ],
       ),

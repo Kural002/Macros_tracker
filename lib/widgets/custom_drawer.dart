@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:macros_tracker/views/export_data_screen.dart';
+import 'package:macros_tracker/views/reminders_screen.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({super.key});
@@ -38,24 +40,52 @@ class CustomDrawer extends StatelessWidget {
               padding: EdgeInsets.zero,
               children: [
                 _buildDrawerItem(
+                  context: context,
                   icon: Icons.notifications_active_outlined,
                   title: "Reminders",
                   subtitle: "Manage your daily reminders",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const RemindersScreen(),
+                      ),
+                    );
+                  },
                 ),
                 _buildDrawerItem(
+                  context: context,
                   icon: Icons.file_download_outlined,
                   title: "Export Data",
                   subtitle: "Export your macros data",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ExportDataScreen(),
+                      ),
+                    );
+                  },
                 ),
+
                 const Divider(indent: 16, endIndent: 16),
                 _buildDrawerItem(
+                  context: context,
                   icon: Icons.home,
                   title: "Home",
                   isSelected: true,
                   activeColor: darkGreen,
                 ),
-                _buildDrawerItem(icon: Icons.bar_chart, title: "Graph"),
-                _buildDrawerItem(icon: Icons.settings, title: "Settings"),
+                _buildDrawerItem(
+                  context: context,
+                  icon: Icons.bar_chart,
+                  title: "Graph",
+                ),
+                _buildDrawerItem(
+                  context: context,
+                  icon: Icons.settings,
+                  title: "Settings",
+                ),
               ],
             ),
           ),
@@ -65,11 +95,13 @@ class CustomDrawer extends StatelessWidget {
   }
 
   Widget _buildDrawerItem({
+    required BuildContext context,
     required IconData icon,
     required String title,
     String? subtitle,
     bool isSelected = false,
     Color? activeColor,
+    VoidCallback? onTap,
   }) {
     return ListTile(
       leading: Icon(icon, color: isSelected ? activeColor : Colors.black87),
@@ -80,8 +112,14 @@ class CustomDrawer extends StatelessWidget {
           color: isSelected ? activeColor : Colors.black87,
         ),
       ),
-      subtitle: subtitle != null ? Text(subtitle) : null,
-      onTap: () {},
+      subtitle: subtitle != null
+          ? Text(subtitle, style: const TextStyle(fontSize: 12))
+          : null,
+      onTap:
+          onTap ??
+          () {
+            Navigator.pop(context);
+          },
     );
   }
 }

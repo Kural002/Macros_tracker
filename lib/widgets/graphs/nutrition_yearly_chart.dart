@@ -16,6 +16,9 @@ class NutritionYearlyChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Define the common color for grid and borders
+    final borderColor = Colors.grey.withOpacity(0.3);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -25,21 +28,27 @@ class NutritionYearlyChart extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         AspectRatio(
-          aspectRatio: 1.5, // Slightly taller to accommodate 12 month labels
+          aspectRatio: 1.5,
           child: LineChart(
             LineChartData(
+              // All four sides are now defined for a complete frame
+              borderData: FlBorderData(
+                show: true,
+                border: Border(
+                  left: BorderSide(color: borderColor, width: 1.0),
+                  bottom: BorderSide(color: borderColor, width: 1.0),
+                  top: BorderSide(color: borderColor, width: 1.0),
+                  right: BorderSide(color: borderColor, width: 1.0),
+                ),
+              ),
               gridData: FlGridData(
                 show: true,
                 drawVerticalLine: true,
                 horizontalInterval: maxY / 2,
-                getDrawingHorizontalLine: (v) => FlLine(
-                  color: Colors.grey.withOpacity(0.3),
-                  dashArray: [5, 5],
-                ),
-                getDrawingVerticalLine: (v) => FlLine(
-                  color: Colors.grey.withOpacity(0.3),
-                  dashArray: [5, 5],
-                ),
+                getDrawingHorizontalLine: (v) =>
+                    FlLine(color: borderColor, dashArray: [5, 5]),
+                getDrawingVerticalLine: (v) =>
+                    FlLine(color: borderColor, dashArray: [5, 5]),
               ),
               titlesData: FlTitlesData(
                 rightTitles: const AxisTitles(

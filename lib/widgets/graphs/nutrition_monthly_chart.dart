@@ -94,14 +94,14 @@ class NutritionMonthlyChart extends StatelessWidget {
               lineBarsData: [
                 LineChartBarData(
                   spots: spots,
-                  isCurved: true, // Exact curved line as per image
+                  isCurved: true,
                   color: darkGreen,
                   barWidth: 2,
                   isStrokeCapRound: true,
                   dotData: const FlDotData(show: true),
                   belowBarData: BarAreaData(
                     show: true,
-                    color: darkGreen.withOpacity(0.1), // Filled area below line
+                    color: darkGreen.withOpacity(0.1),
                   ),
                 ),
               ],

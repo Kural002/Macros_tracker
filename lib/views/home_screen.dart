@@ -1,8 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:macros_tracker/widgets/add_food_bottom_sheet.dart';
 import 'package:macros_tracker/widgets/custom_drawer.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  DateTime _selectedDate = DateTime.now();
+
+  void _changeDate(int days) {
+    setState(() {
+      _selectedDate = _selectedDate.add(Duration(days: days));
+    });
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF4C662B),
+              onPrimary: Colors.white,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,26 +52,20 @@ class HomeScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      drawer: CustomDrawer(),
+      drawer: const CustomDrawer(),
       appBar: AppBar(
         backgroundColor: backgroundColor,
         elevation: 0,
         leading: Builder(
-          builder: (context) {
-            return IconButton(
-              icon: const Icon(Icons.menu),
-              color: Colors.black,
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
-            );
-          },
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.black),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
         ),
         title: const Text(
           "Macros Tracker",
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
-        centerTitle: false,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -40,40 +74,53 @@ class HomeScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 10),
 
-            Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left, color: darkGreen),
+                  onPressed: () => _changeDate(-1),
                 ),
-                decoration: BoxDecoration(
-                  color: lightGreen,
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(
-                      Icons.calendar_today_outlined,
-                      size: 18,
-                      color: darkGreen,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: lightGreen,
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  child: InkWell(
+                    onTap: () => _selectDate(context),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.calendar_today_outlined,
+                          size: 18,
+                          color: darkGreen,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          DateFormat('EEEE, MMM d').format(_selectedDate),
+                          style: const TextStyle(
+                            color: darkGreen,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(width: 8),
-                    Text(
-                      "Saturday, March 14",
-                      style: TextStyle(
-                        color: darkGreen,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right, color: darkGreen),
+                  onPressed: () => _changeDate(1),
+                ),
+              ],
             ),
 
             const SizedBox(height: 30),
 
-            // 2. Daily Progress Card
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -97,7 +144,6 @@ class HomeScreen extends StatelessWidget {
 
             const SizedBox(height: 30),
 
-            // 3. Food Items Section Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -115,7 +161,6 @@ class HomeScreen extends StatelessWidget {
 
             const SizedBox(height: 60),
 
-            // 4. Empty State
             Center(
               child: Column(
                 children: [
@@ -139,11 +184,20 @@ class HomeScreen extends StatelessWidget {
           ],
         ),
       ),
-
-      // 5. Floating Action Button
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
-        backgroundColor: darkGreen,
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            builder: (context) => Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: const AddFoodBottomSheet(),
+            ),
+          );
+        },
+        backgroundColor: const Color(0xFF4C662B),
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text("Add Food", style: TextStyle(color: Colors.white)),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -151,7 +205,6 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Helper method to build the progress bar rows
   Widget _buildMacroRow(
     String title,
     String trailing,
@@ -171,7 +224,7 @@ class HomeScreen extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: LinearProgressIndicator(
-            value: progress, // 0.0 to 1.0
+            value: progress,
             minHeight: 10,
             backgroundColor: Colors.grey.shade200,
             valueColor: AlwaysStoppedAnimation<Color>(color),
