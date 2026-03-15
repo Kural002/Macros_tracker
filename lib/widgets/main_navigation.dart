@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:macros_tracker/views/settings_screen.dart';
 import '../views/home_screen.dart';
 import '../views/nutrition_trends_screen.dart';
 
@@ -15,31 +16,32 @@ class _MainNavigationState extends State<MainNavigation> {
   final List<Widget> _screens = [
     const HomeScreen(),
     const NutritionTrendsScreen(),
-    const Center(child: Text("Settings Screen")),
+    SettingsScreen(),
   ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: _screens[_selectedIndex],
 
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _selectedIndex,
+        onDestinationSelected: (int index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
 
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-
-          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: "Graph"),
-
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: "Home",
+          ),
+          NavigationDestination(icon: Icon(Icons.bar_chart), label: "Graph"),
+          NavigationDestination(
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
             label: "Settings",
           ),
         ],

@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:macros_tracker/widgets/simple_line_chart.dart';
-import 'package:provider/provider.dart';
-import '../viewmodels/trends_viewmodel.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:macros_tracker/widgets/custom_drawer.dart';
+import 'package:macros_tracker/widgets/nutrition_dropdown.dart';
+import 'package:macros_tracker/widgets/graphs/nutrition_line_chart.dart';
+import 'package:macros_tracker/widgets/graphs/nutrition_heatmap.dart';
+import 'package:macros_tracker/constants/app_colors.dart';
+import 'package:macros_tracker/widgets/graphs/nutrition_monthly_chart.dart';
+import 'package:macros_tracker/widgets/graphs/nutrition_yearly_chart.dart';
 
 class NutritionTrendsScreen extends StatefulWidget {
   const NutritionTrendsScreen({super.key});
@@ -11,133 +16,229 @@ class NutritionTrendsScreen extends StatefulWidget {
 }
 
 class _NutritionTrendsScreenState extends State<NutritionTrendsScreen> {
-  int _selectedTabIndex = 0;
-
-  final List<String> _tabs = ['Weekly', 'Monthly', 'Yearly', 'Heatmap'];
+  String selectedNutrient = "All Nutrients";
+  final List<String> nutrients = ["All Nutrients", "Calories", "Protein"];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Nutrition Trends',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-
-              Container(
-                height: 40,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _tabs.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
-                  itemBuilder: (context, index) {
-                    final isSelected = _selectedTabIndex == index;
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedTabIndex = index;
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected ? Colors.blue : Colors.transparent,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: isSelected ? Colors.blue : Colors.grey[400]!,
-                          ),
-                        ),
-                        child: Text(
-                          _tabs[index],
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.grey[700],
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // "All Nutrients" header
-              const Text(
-                'All Nutrients',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 16),
-
-              // Calories card with graph
-              Consumer<TrendsViewModel>(
-                builder: (context, viewModel, child) {
-                  final data = viewModel.weeklyData;
-                  final caloriesValues = data.map((e) => e.calories).toList();
-                  final days = data.map((e) => e.day).toList();
-
-                  return _buildNutrientCard(
-                    title: 'Calories',
-                    values: caloriesValues,
-                    days: days,
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Protein card with graph
-              Consumer<TrendsViewModel>(
-                builder: (context, viewModel, child) {
-                  final data = viewModel.weeklyData;
-                  final proteinValues = data.map((e) => e.protein).toList();
-                  final days = data.map((e) => e.day).toList();
-
-                  return _buildNutrientCard(
-                    title: 'Protein',
-                    values: proteinValues,
-                    days: days,
-                  );
-                },
-              ),
+    return DefaultTabController(
+      length: 4,
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundColor,
+        drawer: const CustomDrawer(),
+        appBar: AppBar(
+          backgroundColor: AppColors.backgroundColor,
+          elevation: 0,
+          leading: Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.menu, color: Colors.black),
+              onPressed: () => Scaffold.of(context).openDrawer(),
+            ),
+          ),
+          title: const Text(
+            "Nutrition Trends",
+            style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+          ),
+          bottom: const TabBar(
+            isScrollable: true,
+            indicatorColor: AppColors.darkGreen,
+            labelColor: AppColors.darkGreen,
+            unselectedLabelColor: Colors.grey,
+            indicatorWeight: 3,
+            dividerColor: Colors.transparent,
+            tabs: [
+              Tab(text: "Weekly"),
+              Tab(text: "Monthly"),
+              Tab(text: "Yearly"),
+              Tab(text: "Heatmap"),
             ],
           ),
+        ),
+        body: TabBarView(
+          children: [
+            _buildLineChartView(),
+            _buildMonthlyView(),
+            _buildYearlyView(),
+            _buildHeatmapView(),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildNutrientCard({
-    required String title,
-    required List<double> values,
-    required List<String> days,
-  }) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+  Widget _buildLineChartView() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          NutritionDropdown(
+            items: nutrients,
+            selectedValue: selectedNutrient,
+            onChanged: (value) {
+              setState(() {
+                selectedNutrient = value;
+              });
+            },
+          ),
+          const SizedBox(height: 30),
+          if (selectedNutrient == "All Nutrients" ||
+              selectedNutrient == "Calories")
+            Column(
+              children: [
+                NutritionLineChart(
+                  title: "Calories",
+                  lineColor: AppColors.darkGreen,
+                  spots: const [
+                    FlSpot(0, 0),
+                    FlSpot(1, 0),
+                    FlSpot(2, 0),
+                    FlSpot(3, 0),
+                    FlSpot(4, 0),
+                    FlSpot(5, 0),
+                    FlSpot(6, 0),
+                  ],
+                ),
+                const SizedBox(height: 40),
+              ],
             ),
-            const SizedBox(height: 12),
-            SimpleLineChart(values: values, xLabels: days),
-          ],
-        ),
+          if (selectedNutrient == "All Nutrients" ||
+              selectedNutrient == "Protein")
+            NutritionLineChart(
+              title: "Protein",
+              lineColor: AppColors.darkGreen,
+              spots: const [
+                FlSpot(0, 0),
+                FlSpot(1, 0),
+                FlSpot(2, 0),
+                FlSpot(3, 0),
+                FlSpot(4, 0),
+                FlSpot(5, 0),
+                FlSpot(6, 0),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMonthlyView() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          NutritionDropdown(
+            items: nutrients,
+            selectedValue: selectedNutrient,
+            onChanged: (value) => setState(() => selectedNutrient = value),
+          ),
+          const SizedBox(height: 30),
+          if (selectedNutrient == "All Nutrients" ||
+              selectedNutrient == "Calories")
+            const NutritionMonthlyChart(
+              title: "Calories",
+              maxY: 876.0,
+              spots: [FlSpot(0, 0), FlSpot(2, 700), FlSpot(4, 0), FlSpot(6, 0)],
+            ),
+          const SizedBox(height: 40),
+          if (selectedNutrient == "All Nutrients" ||
+              selectedNutrient == "Protein")
+            const NutritionMonthlyChart(
+              title: "Protein",
+              maxY: 22.0,
+              spots: [FlSpot(0, 0), FlSpot(2, 18), FlSpot(4, 0), FlSpot(6, 0)],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildYearlyView() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          NutritionDropdown(
+            items: nutrients,
+            selectedValue: selectedNutrient,
+            onChanged: (value) => setState(() => selectedNutrient = value),
+          ),
+          const SizedBox(height: 30),
+          if (selectedNutrient == "All Nutrients" ||
+              selectedNutrient == "Calories")
+            const NutritionYearlyChart(
+              title: "Calories",
+              maxY: 876.0,
+              spots: [
+                FlSpot(0, 0),
+                FlSpot(1, 0),
+                FlSpot(2, 0),
+                FlSpot(3, 0),
+                FlSpot(4, 0),
+                FlSpot(5, 0),
+                FlSpot(6, 0),
+                FlSpot(7, 0),
+                FlSpot(8, 0),
+                FlSpot(9, 0),
+                FlSpot(10, 0),
+                FlSpot(11, 700),
+              ],
+            ),
+          const SizedBox(height: 40),
+          if (selectedNutrient == "All Nutrients" ||
+              selectedNutrient == "Protein")
+            const NutritionYearlyChart(
+              title: "Protein",
+              maxY: 22.0,
+              spots: [
+                FlSpot(0, 0),
+                FlSpot(1, 0),
+                FlSpot(2, 0),
+                FlSpot(3, 0),
+                FlSpot(4, 0),
+                FlSpot(5, 0),
+                FlSpot(6, 0),
+                FlSpot(7, 0),
+                FlSpot(8, 0),
+                FlSpot(9, 0),
+                FlSpot(10, 0),
+                FlSpot(11, 18),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeatmapView() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          NutritionDropdown(
+            items: nutrients,
+            selectedValue: selectedNutrient,
+            onChanged: (value) {
+              setState(() {
+                selectedNutrient = value;
+              });
+            },
+          ),
+          const SizedBox(height: 24),
+          if (selectedNutrient == "All Nutrients" ||
+              selectedNutrient == "Calories")
+            Column(
+              children: [
+                const NutritionHeatmap(
+                  title: "Calories",
+                  target: "Target: 2000.0",
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          if (selectedNutrient == "All Nutrients" ||
+              selectedNutrient == "Protein")
+            const NutritionHeatmap(title: "Protein", target: "Target: 50.0"),
+        ],
       ),
     );
   }
